@@ -1,0 +1,80 @@
+service: ddb-indexer-elasticsearch
+
+plugins: 
+  - serverless-python-requirements
+ 
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: python3.8
+  lambdaHashingVersion: 20201221
+  region: ${opt:region, 'eu-west-1'}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:ListStreams
+        - es:ESHttpPost
+        - es:ESHttpPut
+        - es:ESHttpDelete
+      Resource: "*"
+
+functions:
+  indexer:    
+    handler: handler.index
+    environment:
+      ES_HOST: ''
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt: [EpisodeMetadata, StreamArn]
+
+
+resources:
+  Resources: 
+    EpisodeMetadata:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-ourcompanies
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: siren
+            AttributeType: S
+        KeySchema:
+          - AttributeName: siren
+            KeyType: HASH
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+
+    CompanySearch:
+      Type: AWS::Elasticsearch::Domain
+      Properties:
+        EBSOptions:
+          EBSEnabled: true
+          VolumeType: gp2
+          VolumeSize: 10
+        ElasticsearchClusterConfig:
+          InstanceType: t2.small.elasticsearch
+          InstanceCount: 1
+          DedicatedMasterEnabled: false
+          ZoneAwarenessEnabled: false
+        ElasticsearchVersion: 7.7
+
+        # DANGER ZONE
+        # Don't do this on production
+        AccessPolicies:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                AWS: '*'
+              Action: 'es:*'
+              Resource: '*'
+              Condition:
+                IpAddress:
+                  aws:SourceIp: 
+                    - "91.170.54.80"  #88.160.43.157 #91.170.54.80

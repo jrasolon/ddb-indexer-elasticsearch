@@ -1,0 +1,32 @@
+{
+    "Records": [{
+        "eventID": "248804ed8127d0ed94dd8d25d6c436eb",
+        "eventName": "INSERT",
+        "eventVersion": "1.1",
+        "eventSource": "aws:dynamodb",
+        "awsRegion": "eu-west-1",
+        "dynamodb": {
+            "ApproximateCreationDateTime": 1614846734.0,
+            "Keys": {
+                "siren": {
+                    "S": "123456"
+                }
+            },
+            "NewImage": {
+                "siren": {
+                    "S": "123456"
+                },
+                "episode": {
+                    "S": "vebu"
+                },
+                "title": {
+                    "S": "SpongeBob"
+                }
+            },
+            "SequenceNumber": "100000000005305926510",
+            "SizeBytes": 47,
+            "StreamViewType": "NEW_AND_OLD_IMAGES"
+        },
+        "eventSourceARN": "arn:aws:dynamodb:eu-west-1:869827414822:table/ddb-indexer-elasticsearch-dev-ourcompanies/stream/2021-03-04T08:20:15.411"
+    }]
+}
